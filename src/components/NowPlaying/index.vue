@@ -1,35 +1,39 @@
 <template>
     <div class="movie_body">
-        <ul>
-            <!-- <li>
-                <div class="pic_show"><img src="/images/movie_1.jpg"></div>
-                <div class="info_list">
-                    <h2>无名之辈</h2>
-                    <p>观众评 <span class="grade">9.2</span></p>
-                    <p>主演: 陈建斌,任素汐,潘斌龙</p>
-                    <p>今天55家影院放映607场</p>
-                </div>
-                <div class="btn_mall">
-                    购票
-                </div>
-            </li> -->
-            <li v-for="item in movieList" :key="item.id">
-                <div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
-                <div class="info_list">
-                    <h2>
-                        {{item.nm}}
-                        <img class="img1" v-if="item.version" src="@/assets/3d.png" alt="">
-                        <!-- <img class="img2" v-if="item.version" src="@/assets/imax.png" alt=""> -->
-                    </h2>
-                    <p>观众评 <span class="grade">{{item.sc}}</span></p>
-                    <p>主演: {{item.star}}</p>
-                    <p>{{item.showInfo}}</p>
-                </div>
-                <div class="btn_mall">
-                    购票
-                </div>
-            </li>
-        </ul>
+        <Loading v-if="isLoading"/>
+        <Scroller v-else :handleToScroll="handleToScroll" :handleToTouchEnd="handleToTouchEnd">
+            <ul>
+                <!-- <li>
+                    <div class="pic_show"><img src="/images/movie_1.jpg"></div>
+                    <div class="info_list">
+                        <h2>无名之辈</h2>
+                        <p>观众评 <span class="grade">9.2</span></p>
+                        <p>主演: 陈建斌,任素汐,潘斌龙</p>
+                        <p>今天55家影院放映607场</p>
+                    </div>
+                    <div class="btn_mall">
+                        购票
+                    </div>
+                </li> -->
+                <li class="pullDM">{{ pullDownMsg }}</li>
+                <li v-for="item in movieList" :key="item.id">
+                    <div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
+                    <div class="info_list">
+                        <h2>
+                            {{item.nm}}
+                            <img class="img1" v-if="item.version" src="@/assets/3d.png" alt="">
+                            <!-- <img class="img2" v-if="item.version" src="@/assets/imax.png" alt=""> -->
+                        </h2>
+                        <p>观众评 <span class="grade">{{item.sc}}</span></p>
+                        <p>主演: {{item.star}}</p>
+                        <p>{{item.showInfo}}</p>
+                    </div>
+                    <div class="btn_mall">
+                        购票
+                    </div>
+                </li>
+            </ul>
+        </Scroller>
     </div>
 </template>
 
@@ -38,16 +42,49 @@ export default {
     name: 'NowPlaying',
     data(){
         return{
-            movieList: []
+            movieList: [],
+            pullDownMsg : '',
+            isLoading : true,
+            prevCityId : -1
         }
     },
-    mounted(){
-        this.axios.get('/api/movieOnInfoList?cityId=10').then((res)=>{
+    activated(){
+        var cityId = this.$store.state.city.id;
+        if(this.prevCityId === cityId){ return;}
+        this.isLoading = true;
+        console.log(123);
+        this.axios.get('/api/movieOnInfoList?cityId='+cityId).then((res)=>{
             var msg = res.data.msg;
             if(msg==='ok'){
                 this.movieList = res.data.data.movieList;
+                this.isLoading = false;
+                this.prevCityId = cityId;
             }
         });
+    },
+    methods : {
+        handleToTap(){
+            console.log("handletotap");
+        },
+        handleToScroll(pos){
+            if(pos.y>30){
+                this.pullDownMsg = '加载中...';
+            }
+        },
+        handleToTouchEnd(pos){
+            if(pos.y>30){
+                this.axios.get('/api/movieComingList?cityId=1').then((res)=>{
+                    var msg = res.data.msg;
+                    if(msg=='ok'){
+                        this.pullDownMsg = '加载成功';
+                        setTimeout(()=>{
+                            this.comingList = res.data.data.comingList;
+                            this.pullDownMsg = '';
+                        },1000);
+                    }
+                });
+            }
+        }
     }
 }
 </script>
@@ -66,5 +103,6 @@ export default {
 .movie_body .btn_mall , .movie_body .btn_pre{ width:47px; height:27px; line-height: 28px; text-align: center; background-color: #f03d37; color: #fff; border-radius: 4px; font-size: 12px; cursor: pointer;}
 .movie_body .btn_pre{ background-color: #3c9fe6;}
 .movie_body .info_list .img1{width: 15px; height: 15px;}
+.movie_body .pullDM{ margin: 0; padding: 0; border: none}
 /* .movie_body .info_list .img2{width: 30px; height: 30px;} */
 </style>
