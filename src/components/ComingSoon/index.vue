@@ -1,53 +1,117 @@
 <template>
     <div class="movie_body">
-        <ul>
-            <!-- <li>
-                <div class="pic_show"><img src="/images/movie_1.jpg"></div>
-                <div class="info_list">
-                    <h2>无名之辈</h2>
-                    <p><span class="person">17746</span> 人想看</p>
-                    <p>主演: 陈建斌,任素汐,潘斌龙</p>
-                    <p>2018-11-30上映</p>
-                </div>
-                <div class="btn_pre">
-                    预售
-                </div>
-            </li> -->
-            <li v-for="item in comingList" :key="item.id">
-                <div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
-                <div class="info_list">
-                    <h2>
-                        {{item.nm}}
-                        <img class="img1" v-if="item.version" src="@/assets/3d.png" alt="">    
-                    </h2>
-                    <p><span class="person">{{item.wish}}</span> 人想看</p>
-                    <p>主演: {{item.star}}</p>
-                    <p>{{item.rt}}上映</p>
-                </div>
-                <div class="btn_pre">
-                    预售
-                </div>
-            </li>
-        </ul>
+        <Loading v-if="isLoading"/>
+        <Scroller v-else>
+            <ul>
+                <!-- <li>
+                    <div class="pic_show"><img src="/images/movie_1.jpg"></div>
+                    <div class="info_list">
+                        <h2>无名之辈</h2>
+                        <p><span class="person">17746</span> 人想看</p>
+                        <p>主演: 陈建斌,任素汐,潘斌龙</p>
+                        <p>2018-11-30上映</p>
+                    </div>
+                    <div class="btn_pre">
+                        预售
+                    </div>
+                </li> -->
+                <!--<li class="pullDM">{{ pullDownMsg }}</li>-->
+                <li v-for="item in comingList" :key="item.id">
+                    <div class="pic_show" @tap="handleToTap()"><img :src="item.img | setWH('128.180')"></div>
+                    <div class="info_list">
+                        <h2>
+                            {{item.nm}}
+                            <img class="img1" v-if="item.version" src="@/assets/3d.png" alt="">    
+                        </h2>
+                        <p><span class="person">{{item.wish}}</span> 人想看</p>
+                        <p>主演: {{item.star}}</p>
+                        <p>{{item.rt}}上映</p>
+                    </div>
+                    <div class="btn_pre">
+                        预售
+                    </div>
+                </li>
+            </ul>
+        </Scroller>
 	</div>
 </template>
 
 <script>
+// import BScroll from 'better-scroll';
+import { setTimeout } from 'timers';
+
 export default {
     name: 'ComingSoon',
     data(){
         return{
-            comingList: []
+            comingList: [],
+            //pullDownMsg: '',
+            isLoading : true,
+            prevCityId : -1
         }
     },
-    mounted(){
-        this.axios.get('/api/movieComingList?cityId=10').then((res)=>{
+    activated(){
+        var cityId = this.$store.state.city.id;
+        if(this.prevCityId === cityId){ return;}
+        this.isLoading = true;
+        this.axios.get('/api/movieComingList?cityId='+cityId).then((res)=>{
             var msg = res.data.msg;
             if(msg=='ok'){
                 this.comingList = res.data.data.comingList;
+                this.isLoading = false;
+                this.prevCityId = cityId;
+                // this.$nextTick(()=>{
+                //    var scroll = new BScroll( this.$refs.movie_body , {
+                //         tap : true,
+                //         probeType : 1
+                //     } );
+                //     scroll.on('scroll',(pos)=>{
+                //         // console.log('scroll');
+                //         if(pos.y>30){
+                //             this.pullDownMsg = '加载中...'
+                //         }
+                //     });
+
+                //     scroll.on('touchEnd',(pos)=>{
+                //         // console.log('touchend');
+                //         this.axios.get('/api/movieComingList?cityId=1').then((res)=>{
+                //             var msg = res.data.msg;
+                //             if(msg=='ok'){
+                //                 this.pullDownMsg = '加载成功';
+                //                 setTimeout(()=>{
+                //                     this.comingList = res.data.data.comingList;
+                //                     this.pullDownMsg = '';
+                //                 },1000);
+                //             }
+                //         });
+
+                //     });
+                // });
             }
         })
-    }
+    },
+    /*methods : {
+        handleToTap(){
+            console.log("handletotap");
+        },
+        handleToScroll(pos){
+            if(pos.y>30){
+                this.pullDownMsg = '加载中...';
+            }
+        },
+        handleToTouchEnd(pos){
+            this.axios.get('/api/movieComingList?cityId=1').then((res)=>{
+                var msg = res.data.msg;
+                if(msg=='ok'){
+                    this.pullDownMsg = '加载成功';
+                    setTimeout(()=>{
+                        this.comingList = res.data.data.comingList;
+                        this.pullDownMsg = '';
+                    },1000);
+                }
+            });
+        }
+    }*/
 }
 </script>
 
@@ -65,4 +129,5 @@ export default {
 .movie_body .btn_mall , .movie_body .btn_pre{ width:47px; height:27px; line-height: 28px; text-align: center; background-color: #f03d37; color: #fff; border-radius: 4px; font-size: 12px; cursor: pointer;}
 .movie_body .btn_pre{ background-color: #3c9fe6;}
 .movie_body .info_list .img1{width: 15px; height: 15px;}
+.movie_body .pullDM{ margin: 0; padding: 0; border: none}
 </style>

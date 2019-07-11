@@ -31,21 +31,26 @@
 	</div> -->
     <div class="city_body">
         <div class="city_list">
-            <div class="city_hot">
-                <h2>热门城市</h2>
-                <ul class="clearfix">
-                    <li v-for="i in hotList" :key="i.id">{{i.nm}}</li>
-                </ul>
-            </div>
+            <Loading v-if="isLoading"/>
+            <Scroller v-else ref="city_List">
+                <div>
+                    <div class="city_hot">
+                        <h2>热门城市</h2>
+                        <ul class="clearfix">
+                            <li v-for="i in hotList" :key="i.id" @tap="toCity(i.nm,i.id)">{{i.nm}}</li>
+                        </ul>
+                    </div>
 
-            <div class="city_sort" ref="city_sort">
-                <div v-for="i in cityList" :key="i.id">
-                    <h2>{{i.index}}</h2>
-                    <ul>
-                        <li v-for="j in i.list" :key="j.id">{{j.nm}}</li>
-                    </ul>
-                </div>	
-            </div>
+                    <div class="city_sort" ref="city_sort">
+                        <div v-for="i in cityList" :key="i.id">
+                            <h2>{{i.index}}</h2>
+                            <ul>
+                                <li v-for="j in i.list" :key="j.id" @tap="toCity(j.nm,j.id)">{{j.nm}}</li>
+                            </ul>
+                        </div>	
+                    </div>
+                </div>
+            </Scroller>
         </div>
         <div class="city_index">
                 <ul>
@@ -62,20 +67,36 @@ export default {
     data(){
         return{
             cityList : [],
-            hotList : []
+            hotList : [],
+            isLoading : true
         }
     },
     mounted(){
-        this.axios.get('/api/cityList').then((rec)=>{
-            console.log(rec);
-            var msg = rec.data.msg;
-            if(msg=='ok'){
-                var cities = rec.data.data.cities;
-                var{ cityList , hotList } = this.formatCityList(cities);
-                this.cityList = cityList;
-                this.hotList = hotList;
-           } 
-        });
+
+        var cityList = window.localStorage.getItem("cityList");
+        var hotList = window.localStorage.getItem("hotList");
+
+        if(cityList && hotList){
+            this.cityList = JSON.parse(cityList);
+            this.hotList = JSON.parse(hotList);
+            this.isLoading = false;
+        }
+        else{
+            this.axios.get('/api/cityList').then((rec)=>{
+                console.log(rec);
+                var msg = rec.data.msg;
+                if(msg=='ok'){
+                    this.isLoading = false;
+                    var cities = rec.data.data.cities;
+                    var{ cityList , hotList } = this.formatCityList(cities);
+                    this.cityList = cityList;
+                    this.hotList = hotList;
+                    window.localStorage.setItem("cityList" , JSON.stringify(cityList));
+                    window.localStorage.setItem("hotList" , JSON.stringify(hotList));
+                } 
+            });
+        }
+
     },
 
     methods:{
@@ -132,7 +153,14 @@ export default {
         },
         handleToIndex(index){
             var h2 = this.$refs.city_sort.getElementsByTagName('h2');
-            this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+            // this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+            this.$refs.city_List.toScrollTop(-h2[index].offsetTop);
+        },
+        toCity(nm,id){
+            window.localStorage.setItem('nowNm',nm);
+            window.localStorage.setItem('nowId',id);
+            this.$store.commit("city/CITY_INFO", {nm,id});
+            this.$router.push("/movie/nowPlaying");
         }
     }
 }
