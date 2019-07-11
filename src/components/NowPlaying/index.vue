@@ -17,9 +17,9 @@
                 </li> -->
                 <li class="pullDM">{{ pullDownMsg }}</li>
                 <li v-for="item in movieList" :key="item.id">
-                    <div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
+                    <div class="pic_show" @tap="handleToDetail(item.id)"><img :src="item.img | setWH('128.180')"></div>
                     <div class="info_list">
-                        <h2>
+                        <h2 @tap="handleToDetail(item.id)">
                             {{item.nm}}
                             <img class="img1" v-if="item.version" src="@/assets/3d.png" alt="">
                             <!-- <img class="img2" v-if="item.version" src="@/assets/imax.png" alt=""> -->
@@ -63,8 +63,10 @@ export default {
         });
     },
     methods : {
-        handleToTap(){
-            console.log("handletotap");
+        handleToDetail(movieId){
+            // console.log("handletotap");
+            // console.log(movieId);
+            this.$router.push({path:'/movie/detail/1/' + movieId});
         },
         handleToScroll(pos){
             if(pos.y>30){
