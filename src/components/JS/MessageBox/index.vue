@@ -3,8 +3,8 @@
         <h2>{{title}}</h2>
         <p>{{content}}</p>
         <div>
-            <div @touchstart="handleCancel">{{cancel}}</div>
-            <div @touchstart="handleOk">{{ok}}</div>
+            <div v-if="cancel" @touchstart="handleCancel">{{cancel}}</div>
+            <div v-if="ok" @touchstart="handleOk">{{ok}}</div>
         </div>
     </div>
 </template>
@@ -35,7 +35,8 @@ export default {
     }
     .messageBox p{
         text-align: center;
-        line-height: 40px;
+        line-height: 30px;
+        font-size: 18px;
     }
     .messageBox > div{
         display: flex;
